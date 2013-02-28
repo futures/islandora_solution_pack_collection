@@ -234,9 +234,20 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
   } catch (Exception $e) {
     drupal_set_message(t('Islandora Error getting related objects for %s', array('%s' => $object->id)), 'error');
-    return '';
+    return array();
   }
   return $results;
+}
+
+/**
+ * alter the collection query, we should pull this into a separate fcrepo4 collecton module but
+ * it is here for ease of testing for now
+ * 
+ */
+
+function islandora_basic_collection_islandora_basic_collection_query_alter(&$query_array){
+  $query_array['query'] = 'Select "jcr:name" From "nt:folder"';
+  $query_array['type'] = 'SQL2';
 }
 
 /**
