@@ -290,10 +290,9 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
   drupal_alter('islandora_basic_collection_query', $query_array);
   try {
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
-  }
-  catch (Exception $e) {
-    drupal_set_message(t('Error getting related objects for %s', array('%s' => $object->id)), 'error');
-    return '';
+  } catch (Exception $e) {
+    drupal_set_message(t('Islandora Error getting related objects for %s', array('%s' => $object->id)), 'error');
+    return array();
   }
   return $results;
 }
@@ -327,6 +326,20 @@ function islandora_basic_collection_get_collections() {
     }
   }
   return $collections;
+}
+/**
+ * alters query to use SQL2 if repository version is = or greater then 4.0
+ * 
+ * @param array $query_array
+ */
+function islandora_basic_collection_islandora_basic_collection_query_alter(&$query_array) {
+  //no concept of labels or relationships yet in fcrepo4.
+  module_load_include('inc', 'islandora', 'utilities');
+  $info = islandora_describe_repository();
+  if ($info['repositoryVersion'] >= 4.0) {
+    $query_array['query'] = 'Select "jcr:name" From "nt:folder"';
+    $query_array['type'] = 'SQL2';
+  }
 }
 
 /**

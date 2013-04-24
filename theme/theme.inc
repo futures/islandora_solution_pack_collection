@@ -47,10 +47,37 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
   $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
 
   if ($display == 'grid') {
+/*<<<<<<< HEAD
     $grid_link['attributes']['class'][] = 'active';
   }
   else {
     $list_link['attributes']['class'][] = 'active';
+//=======*/
+    $query_params['display'] = 'list';
+    $list_link = array(
+      'title' => 'List view',
+      'href' => $base_url . '/islandora/object/' . $islandora_object->id,
+      'attributes' => array(
+        'class' => 'islandora-view-list'
+      ),
+      'query' => $query_params
+    );
+    unset($query_params['display']);
+    $query_params['display'] = 'grid';
+    $grid_link = array('title' => 'Grid view', 'href' => $base_url . '/islandora/object/' . $islandora_object->id, 'attributes' => array('class' => array('islandora-view-grid', 'active')),
+      'query' => $query_params);
+    $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
+  }
+  else {
+    $query_params['display'] = 'list';
+    $list_link = array('title' => 'List view', 'href' => $base_url . '/islandora/object/' . $islandora_object->id, 'attributes' => array('class' => array('islandora-view-list', 'active')),
+      'query' => $query_params);
+    unset($query_params['display']);
+    $query_params['display'] = 'grid';
+    $grid_link = array('title' => 'Grid view', 'href' => $base_url . '/islandora/object/' . $islandora_object->id, 'attributes' => array('class' => 'islandora-view-grid'),
+      'query' => $query_params);
+    $collection_content = theme('islandora_basic_collection', array('islandora_object' => $islandora_object, 'collection_results' => $results));
+
   }
 
   $variables['view_links'] = array($grid_link, $list_link);
@@ -66,10 +93,13 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
   $islandora_object = $variables['islandora_object'];
 
   try {
-    $dc = $islandora_object['DC']->content;
-    $dc_object = DublinCore::importFromXMLString($dc);
-  }
-  catch (Exception $e) {
+    //pp changed for fcrepo4
+    if (isset($islandora_object['DC'])) {
+      $dc = $islandora_object['DC']->content;
+      $dc_object = DublinCore::importFromXMLString($dc);
+    }
+
+  } catch (Exception $e) {
     drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
   }
   $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
@@ -120,11 +150,12 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
     }
     $associated_objects_array[$pid]['object'] = $fc_object;
     try {
-      $dc = $fc_object['DC']->content;
-      $dc_object = DublinCore::importFromXMLString($dc);
-      $associated_objects_array[$pid]['dc_array'] = $dc_object->asArray();
-    }
-    catch (Exception $e) {
+
+      // $dc = $fc_object['DC']->content;
+      // $dc_object = DublinCore::importFromXMLString($dc);
+      // $associated_objects_array[$pid]['dc_array'] = $dc_object->asArray();
+    } catch (Exception $e) {
+
       drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
     }
     $object_url = 'islandora/object/' . $pid;
